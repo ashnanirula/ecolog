@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>AI Field Guide</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 40px;
+      text-align: center;
+      background-color: #f4f9f4;
+    }
+    form {
+      margin-top: 20px;
+    }
+    #result {
+      margin-top: 30px;
+      padding: 20px;
+      background: #ffffff;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      max-width: 800px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    img.illustration {
+      max-width: 100%;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      margin: 10px 0;
+      display: none;
+    }
+    pre {
+      white-space: pre-wrap;
+      text-align: left;
+    }
+    .loader {
+      border: 6px solid #f3f3f3;
+      border-top: 6px solid #4caf50;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <h1>🌿 AI Field Guide</h1>
+  <p>Upload a photo of a plant or animal. AI will identify it and generate 3 styled field guide drawings.</p>
+
+  <form id="uploadForm" enctype="multipart/form-data">
+    <input type="file" name="image" accept="image/*" required><br><br>
+    <button type="submit">Analyze</button>
+  </form>
+
+  <div id="spinner" style="display: none; margin-top: 20px;">
+    <p>Generating...</p>
+    <div class="loader"></div>
+  </div>
+
+  <div id="result">
+    <h2>📝 Description</h2>
+    <pre id="description">Your result will appear here.</pre>
+
+    <h2>🎨 AI Illustrations</h2>
+    <img id="img1" class="illustration">
+    <img id="img2" class="illustration">
+    <img id="img3" class="illustration">
+  </div>  
+
+  <script>
+    const form = document.getElementById('uploadForm');
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(form);
+
+      document.getElementById('spinner').style.display = "block";
+      document.getElementById('description').innerText = "Analyzing...";
+      document.querySelectorAll('.illustration').forEach(img => img.style.display = 'none');
+
+      const response = await fetch('/analyze', {
+        method: 'POST',
+        body: formData
+      });
+
+      const data = await response.json();
+      document.getElementById('spinner').style.display = "none";
+      document.getElementById('description').innerText = data.output || JSON.stringify(data.error);
+
+      if (data.illustrations) {
+        data.illustrations.forEach((url, i) => {
+          const img = document.getElementById(`img${i+1}`);
+          img.src = url;
+          img.style.display = 'block';
+        });
+      }
+    });
+  </script>
+</body>
+</html>
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ashna's Guides</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family:
+          "DM Sans",
+          -apple-system,
+          Roboto,
+          Helvetica,
+          sans-serif;
+        background-color: #eeede8;
+        min-height: 100vh;
+        overflow-x: hidden;
+      }
+
+      .container {
+        max-width: 428px;
+        margin: 0 auto;
+        min-height: 100vh;
+        position: relative;
+        background-color: #eeede8;
+      }
+
+      .header {
+        padding: 65px 20px 0 20px;
+      }
+
+      .main-title {
+        font-family: "Cactus Classical Serif", serif;
+        font-size: clamp(48px, 15vw, 64px);
+        font-weight: 400;
+        line-height: 1.02;
+        letter-spacing: -0.196px;
+        color: #000;
+        margin-bottom: 40px;
+      }
+
+      .view-all-link {
+        position: absolute;
+        top: 198px;
+        right: 20px;
+        font-family: "Cactus Classical Serif", serif;
+        font-size: 10px;
+        color: #000;
+        text-decoration: underline;
+      }
+
+      .notebooks-section {
+        margin-top: 30px;
+        height: 226px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .notebooks-container {
+        display: flex;
+        gap: 4px;
+        padding-left: 20px;
+      }
+
+      .notebook-card {
+        min-width: 150px;
+        height: 193px;
+        border-radius: 8px;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+      }
+
+      .notebook-card.plants {
+        background-color: #4a5a3f;
+      }
+      .notebook-card.aquatic {
+        background-color: #abbf9a;
+      }
+      .notebook-card.fish {
+        background-color: #7c9565;
+      }
+
+      .notebook-image {
+        position: absolute;
+        top: 9px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 136px;
+        height: 149px;
+        object-fit: cover;
+      }
+
+      .notebook-title {
+        font-family: "Cactus Classical Serif", serif;
+        font-size: 14px;
+        color: #eeede8;
+        line-height: 1.2;
+        letter-spacing: -1px;
+        padding: 0 8px 20px 8px;
+        text-align: center;
+        z-index: 2;
+      }
+
+      .discover-section {
+        padding: 40px 20px 0 20px;
+      }
+
+      .discover-title {
+        font-family: "Cactus Classical Serif", serif;
+        font-size: 40px;
+        font-weight: 400;
+        line-height: 1.6;
+        letter-spacing: -0.196px;
+        color: #000;
+        margin-bottom: 30px;
+      }
+
+      .discovery-cards {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        margin-bottom: 120px;
+      }
+
+      .discovery-card {
+        display: flex;
+        background-color: #abbf9a;
+        border-radius: 38px;
+        box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.25);
+        height: 121px;
+        align-items: center;
+        padding: 7px;
+      }
+
+      .discovery-image {
+        width: 112px;
+        height: 111px;
+        border-radius: 38px;
+        object-fit: cover;
+        flex-shrink: 0;
+      }
+
+      .discovery-content {
+        padding: 0 20px;
+        flex: 1;
+      }
+
+      .discovery-title {
+        font-weight: 700;
+        font-size: 14px;
+        color: #000;
+        margin-bottom: 2px;
+      }
+
+      .discovery-subtitle {
+        font-size: 10px;
+        color: #000;
+      }
+
+      .discovery-subtitle .author {
+        text-decoration: underline;
+      }
+
+      .bottom-nav {
+        position: fixed;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100%;
+        max-width: 428px;
+        height: 160px;
+        background:
+          linear-gradient(
+            0deg,
+            rgba(245, 245, 245, 0.4) 0%,
+            rgba(245, 245, 245, 0.4) 100%
+          ),
+          #0f0f0f;
+        backdrop-filter: blur(40px);
+        border-radius: 34px 34px 0 0;
+        display: flex;
+        align-items: flex-end;
+        padding-bottom: 20px;
+        z-index: 10;
+      }
+
+      .nav-items {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        padding: 0 20px;
+        position: relative;
+      }
+
+      .nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        color: #7c9565;
+        font-size: 15px;
+        text-decoration: none;
+        width: 96px;
+      }
+
+      .nav-icon {
+        width: 24px;
+        height: 24px;
+        margin-bottom: 4px;
+        fill: #7c9565;
+      }
+
+      .add-button {
+        position: absolute;
+        left: 50%;
+        top: -50px;
+        transform: translateX(-50%);
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background:
+          linear-gradient(0deg, #7c9565 0%, #7c9565 100%),
+          linear-gradient(
+            0deg,
+            rgba(255, 255, 255, 0.5) 0%,
+            rgba(255, 255, 255, 0.5) 100%
+          ),
+          #b8c9a9;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+      }
+
+      .add-icon {
+        width: 32px;
+        height: 32px;
+        fill: white;
+      }
+
+      .upload-form {
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: white;
+        padding: 30px;
+        border-radius: 20px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        z-index: 1000;
+        max-width: 90%;
+        width: 320px;
+      }
+
+      .overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 999;
+      }
+
+      .form-title {
+        font-family: "Cactus Classical Serif", serif;
+        font-size: 24px;
+        color: #000;
+        margin-bottom: 20px;
+        text-align: center;
+      }
+
+      .file-input {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #abbf9a;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        font-family: "DM Sans", sans-serif;
+      }
+
+      .submit-btn,
+      .close-btn {
+        width: 100%;
+        padding: 12px;
+        border: none;
+        border-radius: 10px;
+        font-family: "DM Sans", sans-serif;
+        font-weight: 700;
+        cursor: pointer;
+        margin-bottom: 10px;
+      }
+
+      .submit-btn {
+        background-color: #7c9565;
+        color: white;
+      }
+
+      .close-btn {
+        background-color: #f0f0f0;
+        color: #333;
+      }
+
+      .spinner {
+        display: none;
+        text-align: center;
+        margin: 20px 0;
+      }
+
+      .loader {
+        border: 3px solid #f3f3f3;
+        border-top: 3px solid #7c9565;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 10px;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      .result-section {
+        margin-top: 20px;
+        padding: 20px;
+        background: #f9f9f9;
+        border-radius: 10px;
+        display: none;
+      }
+
+      .result-image {
+        max-width: 100%;
+        border-radius: 8px;
+        margin: 10px 0;
+      }
+
+      /* Responsive Design */
+      @media (max-width: 480px) {
+        .container {
+          max-width: 100%;
+        }
+
+        .notebooks-container {
+          padding-left: 10px;
+        }
+
+        .notebook-card {
+          min-width: 140px;
+        }
+
+        .discover-section {
+          padding: 40px 10px 0 10px;
+        }
+
+        .nav-items {
+          padding: 0 10px;
+        }
+      }
+
+      @media (min-width: 768px) {
+        .notebooks-container {
+          justify-content: center;
+          padding-left: 0;
+        }
+
+        .discovery-cards {
+          max-width: 500px;
+          margin: 0 auto 120px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header class="header">
+        <h1 class="main-title">Ashna's<br />Guides</h1>
+        <a href="#" class="view-all-link">view all notebooks</a>
+      </header>
+
+      <section class="notebooks-section">
+        <div class="notebooks-container">
+          <div class="notebook-card plants">
+            <img
+              src="https://api.builder.io/api/v1/image/assets/TEMP/a30d59ab5f7dc4595b679e2175318326921054ac?width=272"
+              alt="Plants and shrubs"
+              class="notebook-image"
+            />
+            <h3 class="notebook-title">plants and shrubs</h3>
+          </div>
+          <div class="notebook-card aquatic">
+            <img
+              src="https://api.builder.io/api/v1/image/assets/TEMP/cc60ac88939580dd0ade36860afc2729a737df94?width=273"
+              alt="Aquatic greens"
+              class="notebook-image"
+            />
+            <h3 class="notebook-title">aquatic greens</h3>
+          </div>
+          <div class="notebook-card fish">
+            <img
+              src="https://api.builder.io/api/v1/image/assets/TEMP/c6f247bfb52205e5d20ea5927a7001eb6e370fb6?width=274"
+              alt="Fish at lake ontario"
+              class="notebook-image"
+            />
+            <h3 class="notebook-title">fish @ lake ontario</h3>
+          </div>
+        </div>
+      </section>
+
+      <section class="discover-section">
+        <h2 class="discover-title">Discover</h2>
+        <div class="discovery-cards">
+          <div class="discovery-card">
+            <img
+              src="https://api.builder.io/api/v1/image/assets/TEMP/0bb698c0f85729ab960e62079cc34c098b3fa189?width=224"
+              alt="Fringed helmet orchid"
+              class="discovery-image"
+            />
+            <div class="discovery-content">
+              <h3 class="discovery-title">Fringed helmet orchid</h3>
+              <p class="discovery-subtitle">
+                found and documented by <span class="author">Ashley</span>
+              </p>
+            </div>
+          </div>
+          <div class="discovery-card">
+            <img
+              src="https://api.builder.io/api/v1/image/assets/TEMP/0bb698c0f85729ab960e62079cc34c098b3fa189?width=224"
+              alt="Fringed helmet orchid"
+              class="discovery-image"
+            />
+            <div class="discovery-content">
+              <h3 class="discovery-title">Fringed helmet orchid</h3>
+              <p class="discovery-subtitle">
+                found and documented by <span class="author">Ashley</span>
+              </p>
+            </div>
+          </div>
+          <div class="discovery-card">
+            <img
+              src="https://api.builder.io/api/v1/image/assets/TEMP/0bb698c0f85729ab960e62079cc34c098b3fa189?width=224"
+              alt="Fringed helmet orchid"
+              class="discovery-image"
+            />
+            <div class="discovery-content">
+              <h3 class="discovery-title">Fringed helmet orchid</h3>
+              <p class="discovery-subtitle">
+                found and documented by <span class="author">Ashley</span>
+              </p>
+            </div>
+          </div>
+          <div class="discovery-card">
+            <img
+              src="https://api.builder.io/api/v1/image/assets/TEMP/5f84ca85afbb07bbd2464b1c467a06d6e0c48ef9?width=224"
+              alt="Fringed helmet orchid"
+              class="discovery-image"
+            />
+            <div class="discovery-content">
+              <h3 class="discovery-title">Fringed helmet orchid</h3>
+              <p class="discovery-subtitle">
+                found and documented by <span class="author">Ashley</span>
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <nav class="bottom-nav">
+        <div class="nav-items">
+          <a href="#" class="nav-item">
+            <svg class="nav-icon" viewBox="0 0 24 24">
+              <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
+            </svg>
+            <span>home</span>
+          </a>
+          <a href="#" class="nav-item">
+            <svg class="nav-icon" viewBox="0 0 24 24">
+              <path
+                d="M16 4c0-1.11.89-2 2-2s2 .89 2 2-.89 2-2 2-2-.89-2-2zm4 18v-6h2.5l-2.54-7.63A1.5 1.5 0 0 0 18.54 8H16.5c-.83 0-1.54.5-1.85 1.22l-1.92 5.78c.26.15.49.34.68.56L15.5 12h.84L18 16v6h2zM12.5 11.5c.83 0 1.5-.67 1.5-1.5s-.67-1.5-1.5-1.5S11 9.17 11 10s.67 1.5 1.5 1.5zM5.5 6c1.11 0 2-.89 2-2s-.89-2-2-2-2 .89-2 2 .89 2 2 2zm2 16v-7H9l-3-7H4.5c-.83 0-1.54.5-1.85 1.22L.96 14.4C.36 15.87 1.47 17.5 3 17.5h2.5V22h2z"
+              />
+            </svg>
+            <span>friends</span>
+          </a>
+          <button class="add-button" onclick="showUploadForm()">
+            <svg class="add-icon" viewBox="0 0 24 24">
+              <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+            </svg>
+          </button>
+          <a href="#" class="nav-item">
+            <svg class="nav-icon" viewBox="0 0 24 24">
+              <path
+                d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"
+              />
+            </svg>
+            <span>map</span>
+          </a>
+          <a href="#" class="nav-item">
+            <svg class="nav-icon" viewBox="0 0 24 24">
+              <path
+                d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
+              />
+            </svg>
+            <span>me</span>
+          </a>
+        </div>
+      </nav>
+    </div>
+
+    <!-- Upload Form Modal -->
+    <div class="overlay" onclick="hideUploadForm()"></div>
+    <div class="upload-form" id="uploadForm">
+      <h2 class="form-title">🌿 Add New Log</h2>
+      <form id="analysisForm" enctype="multipart/form-data">
+        <input
+          type="file"
+          name="image"
+          accept="image/*"
+          required
+          class="file-input"
+        />
+        <button type="submit" class="submit-btn">Analyze & Add</button>
+        <button type="button" class="close-btn" onclick="hideUploadForm()">
+          Cancel
+        </button>
+      </form>
+
+      <div class="spinner" id="spinner">
+        <div class="loader"></div>
+        <p>Analyzing your discovery...</p>
+      </div>
+
+      <div class="result-section" id="result">
+        <h3>Analysis Result</h3>
+        <pre id="description"></pre>
+        <div id="illustrations"></div>
+      </div>
+    </div>
+
+    <script>
+      function showUploadForm() {
+        document.querySelector(".overlay").style.display = "block";
+        document.getElementById("uploadForm").style.display = "block";
+      }
+
+      function hideUploadForm() {
+        document.querySelector(".overlay").style.display = "none";
+        document.getElementById("uploadForm").style.display = "none";
+        document.getElementById("result").style.display = "none";
+        document.getElementById("spinner").style.display = "none";
+      }
+
+      document
+        .getElementById("analysisForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const formData = new FormData(e.target);
+
+          document.getElementById("spinner").style.display = "block";
+          document.getElementById("result").style.display = "none";
+
+          try {
+            const response = await fetch("/analyze", {
+              method: "POST",
+              body: formData,
+            });
+
+            const data = await response.json();
+            document.getElementById("spinner").style.display = "none";
+
+            if (data.error) {
+              document.getElementById("description").textContent =
+                `Error: ${data.error}`;
+            } else {
+              document.getElementById("description").textContent =
+                data.output || "Analysis complete!";
+
+              const illustrationsDiv = document.getElementById("illustrations");
+              illustrationsDiv.innerHTML = "";
+
+              if (data.illustrations) {
+                data.illustrations.forEach((url, i) => {
+                  const img = document.createElement("img");
+                  img.src = url;
+                  img.className = "result-image";
+                  img.alt = `Illustration ${i + 1}`;
+                  illustrationsDiv.appendChild(img);
+                });
+              }
+            }
+
+            document.getElementById("result").style.display = "block";
+          } catch (error) {
+            document.getElementById("spinner").style.display = "none";
+            document.getElementById("description").textContent =
+              `Error: ${error.message}`;
+            document.getElementById("result").style.display = "block";
+          }
+        });
+
+      // Add smooth scrolling for navigation
+      document.querySelectorAll(".nav-item").forEach((item) => {
+        item.addEventListener("click", (e) => {
+          e.preventDefault();
+          // Add navigation logic here
+        });
+      });
+    </script>
+  </body>
+</html>
+
+
+
+
+
+
